@@ -54,8 +54,8 @@ local keys = {
    { key = 'Backspace',  mods = mod.SUPER,     action = act.SendString '\u{15}' },
 
    -- copy/paste --
-   { key = 'c',          mods = 'CTRL|SHIFT',  action = act.CopyTo('Clipboard') },
-   { key = 'v',          mods = 'CTRL|SHIFT',  action = act.PasteFrom('Clipboard') },
+   { key = 'c',          mods = mod.SUPER,      action = act.CopyTo('Clipboard') },
+   { key = 'v',          mods = mod.SUPER,      action = act.PasteFrom('Clipboard') },
 
    -- tabs --
    -- tabs: spawn+close
@@ -81,19 +81,19 @@ local keys = {
    { key = 'n',          mods = mod.SUPER,     action = act.SpawnWindow },
 
    -- window: zoom window
-   {
-      key = '-',
-      mods = mod.SUPER,
-      action = wezterm.action_callback(function(window, _pane)
-         local dimensions = window:get_dimensions()
-         if dimensions.is_full_screen then
-            return
-         end
-         local new_width = dimensions.pixel_width - 50
-         local new_height = dimensions.pixel_height - 50
-         window:set_inner_size(new_width, new_height)
-      end)
-   },
+   -- {
+   --    key = '-',
+   --    mods = mod.SUPER,
+   --    action = wezterm.action_callback(function(window, _pane)
+   --       local dimensions = window:get_dimensions()
+   --       if dimensions.is_full_screen then
+   --          return
+   --       end
+   --       local new_width = dimensions.pixel_width - 50
+   --       local new_height = dimensions.pixel_height - 50
+   --       window:set_inner_size(new_width, new_height)
+   --    end)
+   -- },
    {
       key = '=',
       mods = mod.SUPER,
@@ -158,13 +158,13 @@ local keys = {
    -- panes --
    -- panes: split panes
    {
-      key = [[\]],
+      key = '-',
       mods = mod.SUPER,
       action = act.SplitVertical({ domain = 'CurrentPaneDomain' }),
    },
    {
-      key = [[\]],
-      mods = mod.SUPER_REV,
+      key = '\\',
+      mods = mod.SUPER,
       action = act.SplitHorizontal({ domain = 'CurrentPaneDomain' }),
    },
 

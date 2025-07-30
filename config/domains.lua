@@ -8,7 +8,12 @@ return {
          remote_address = 'localhost',
          multiplexing = 'None',
          default_prog = { 'zsh', '-l' },
-         assume_shell = 'Posix'
+         assume_shell = 'Posix',
+         ssh_option = {
+            ConnectTimeout = '15',
+            ServerAliveInterval = '60',
+            ServerAliveCountMax = '3',
+         },
       }
    },
 
