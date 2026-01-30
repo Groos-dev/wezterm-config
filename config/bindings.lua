@@ -9,12 +9,194 @@ if platform.is_mac then
    mod.SUPER = 'SUPER'
    mod.SUPER_REV = 'SUPER|CTRL'
 elseif platform.is_win or platform.is_linux then
-   mod.SUPER = 'ALT' -- to not conflict with Windows key shortcuts
+   mod.SUPER = 'ALT'
    mod.SUPER_REV = 'ALT|CTRL'
+end
+
+-- Helper to get modifier display name
+local function get_mod_symbol()
+   if platform.is_mac then
+      return '⌘'
+   else
+      return 'Alt'
+   end
+end
+
+local function get_mod_rev_symbol()
+   if platform.is_mac then
+      return '⌘⌃'
+   else
+      return 'Alt+Ctrl'
+   end
+end
+
+-- Which-Key style keybinding guide
+local function create_keybind_guide()
+   local M = get_mod_symbol()
+   local MR = get_mod_rev_symbol()
+
+   local categories = {
+      {
+         title = 'GENERAL',
+         icon = '⚙️',
+         items = {
+            { key = M .. ' Shift h', desc = 'Show This Guide' },
+            { key = 'F1', desc = 'Copy Mode' },
+            { key = M .. ' Esc', desc = 'Copy Mode (alt)' },
+            { key = 'F2', desc = 'Command Palette' },
+            { key = 'F3', desc = 'Launcher' },
+            { key = 'F4', desc = 'Fuzzy Tabs' },
+            { key = 'F5', desc = 'Fuzzy Workspaces' },
+            { key = M .. ' f', desc = 'Search' },
+            { key = MR .. ' u', desc = 'Open URL' },
+            { key = 'F11', desc = 'Toggle Fullscreen' },
+            { key = 'F12', desc = 'Debug Overlay' },
+         },
+      },
+      {
+         title = 'TABS',
+         icon = '📑',
+         items = {
+            { key = M .. ' t', desc = 'New Tab' },
+            { key = MR .. ' t', desc = 'New Tab (WSL)' },
+            { key = MR .. ' w', desc = 'Close Tab' },
+            { key = M .. ' [', desc = 'Previous Tab' },
+            { key = M .. ' ]', desc = 'Next Tab' },
+            { key = MR .. ' [', desc = 'Move Tab Left' },
+            { key = MR .. ' ]', desc = 'Move Tab Right' },
+            { key = M .. ' 1-8', desc = 'Jump to Tab #' },
+            { key = M .. ' 0', desc = 'Rename Tab' },
+            { key = MR .. ' 0', desc = 'Reset Tab Title' },
+            { key = M .. ' 9', desc = 'Toggle Tab Bar' },
+         },
+      },
+      {
+         title = 'PANES',
+         icon = '🪟',
+         items = {
+            { key = M .. ' -', desc = 'Split Vertical' },
+            { key = M .. ' \\', desc = 'Split Horizontal' },
+            { key = M .. ' w', desc = 'Close Pane' },
+            { key = M .. ' Enter', desc = 'Toggle Zoom' },
+            { key = M .. ' h', desc = 'Navigate Left' },
+            { key = M .. ' j', desc = 'Navigate Down' },
+            { key = M .. ' k', desc = 'Navigate Up' },
+            { key = M .. ' l', desc = 'Navigate Right' },
+            { key = MR .. ' p', desc = 'Swap Pane' },
+            { key = 'PageUp', desc = 'Scroll Up' },
+            { key = 'PageDown', desc = 'Scroll Down' },
+         },
+      },
+      {
+         title = 'WINDOW',
+         icon = '🖥️',
+         items = {
+            { key = M .. ' n', desc = 'New Window' },
+            { key = M .. ' =', desc = 'Increase Size' },
+         },
+      },
+      {
+         title = 'CLIPBOARD',
+         icon = '📋',
+         items = {
+            { key = M .. ' c', desc = 'Copy' },
+            { key = M .. ' v', desc = 'Paste' },
+         },
+      },
+      {
+         title = 'CURSOR',
+         icon = '➡️',
+         items = {
+            { key = M .. ' ←', desc = 'Jump to Line Start' },
+            { key = M .. ' →', desc = 'Jump to Line End' },
+            { key = M .. ' Backspace', desc = 'Delete to Start' },
+         },
+      },
+      {
+         title = 'BACKGROUND',
+         icon = '🎨',
+         items = {
+            { key = M .. ' /', desc = 'Random Background' },
+            { key = M .. ' ,', desc = 'Previous Background' },
+            { key = M .. ' .', desc = 'Next Background' },
+            { key = MR .. ' /', desc = 'Select Background' },
+            { key = M .. ' b', desc = 'Toggle Blur/Focus' },
+         },
+      },
+      {
+         title = 'LEADER MODE',
+         icon = '🎹',
+         items = {
+            { key = MR .. ' Space', desc = 'Activate Leader' },
+            { key = 'Leader f', desc = 'Font Resize Mode' },
+            { key = 'Leader r', desc = 'Pane Resize Mode' },
+         },
+      },
+      {
+         title = 'FONT RESIZE (after Leader f)',
+         icon = '🔤',
+         items = {
+            { key = 'k', desc = 'Increase Font' },
+            { key = 'j', desc = 'Decrease Font' },
+            { key = 'r', desc = 'Reset Font' },
+            { key = 'Esc/q', desc = 'Exit Mode' },
+         },
+      },
+      {
+         title = 'PANE RESIZE (after Leader r)',
+         icon = '↔️',
+         items = {
+            { key = 'h/j/k/l', desc = 'Resize Direction' },
+            { key = 'Esc/q', desc = 'Exit Mode' },
+         },
+      },
+   }
+
+   local choices = {}
+   for _, cat in ipairs(categories) do
+      -- Add category header
+      table.insert(choices, {
+         id = 'header_' .. cat.title,
+         label = wezterm.format({
+            { Foreground = { AnsiColor = 'Yellow' } },
+            { Attribute = { Intensity = 'Bold' } },
+            { Text = cat.icon .. ' ══════ ' .. cat.title .. ' ══════' },
+         }),
+      })
+      -- Add items in this category
+      for _, item in ipairs(cat.items) do
+         table.insert(choices, {
+            id = cat.title .. '_' .. item.key,
+            label = wezterm.format({
+               { Foreground = { AnsiColor = 'Aqua' } },
+               { Text = string.format('  %-16s', item.key) },
+               'ResetAttributes',
+               { Foreground = { AnsiColor = 'White' } },
+               { Text = item.desc },
+            }),
+         })
+      end
+   end
+   return choices
 end
 
 -- stylua: ignore
 local keys = {
+   -- which-key style keybinding guide --
+   {
+      key = 'h',
+      mods = 'SUPER|SHIFT',
+      action = act.InputSelector({
+         title = '⌨️  WezTerm Keybindings Guide',
+         choices = create_keybind_guide(),
+         fuzzy = true,
+         fuzzy_description = 'Search keybindings: ',
+         action = wezterm.action_callback(function(_window, _pane, _id, _label)
+            -- Display only, no action needed
+         end),
+      }),
+   },
+
    -- misc/useful --
    { key = 'F1', mods = 'NONE', action = 'ActivateCopyMode' },
    { key = 'Escape', mods = mod.SUPER, action = 'ActivateCopyMode' },
