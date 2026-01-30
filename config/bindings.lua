@@ -17,6 +17,7 @@ end
 local keys = {
    -- misc/useful --
    { key = 'F1', mods = 'NONE', action = 'ActivateCopyMode' },
+   { key = 'Escape', mods = mod.SUPER, action = 'ActivateCopyMode' },
    { key = 'F2', mods = 'NONE', action = act.ActivateCommandPalette },
    { key = 'F3', mods = 'NONE', action = act.ShowLauncher },
    { key = 'F4', mods = 'NONE', action = act.ShowLauncherArgs({ flags = 'FUZZY|TABS' }) },
@@ -68,6 +69,16 @@ local keys = {
    { key = ']',          mods = mod.SUPER,     action = act.ActivateTabRelative(1) },
    { key = '[',          mods = mod.SUPER_REV, action = act.MoveTabRelative(-1) },
    { key = ']',          mods = mod.SUPER_REV, action = act.MoveTabRelative(1) },
+
+   -- tabs: number jump (Vim style)
+   { key = '1',          mods = mod.SUPER,     action = act.ActivateTab(0) },
+   { key = '2',          mods = mod.SUPER,     action = act.ActivateTab(1) },
+   { key = '3',          mods = mod.SUPER,     action = act.ActivateTab(2) },
+   { key = '4',          mods = mod.SUPER,     action = act.ActivateTab(3) },
+   { key = '5',          mods = mod.SUPER,     action = act.ActivateTab(4) },
+   { key = '6',          mods = mod.SUPER,     action = act.ActivateTab(5) },
+   { key = '7',          mods = mod.SUPER,     action = act.ActivateTab(6) },
+   { key = '8',          mods = mod.SUPER,     action = act.ActivateTab(7) },
 
    -- tab: title
    { key = '0',          mods = mod.SUPER,     action = act.EmitEvent('tabs.manual-update-tab-title') },
@@ -172,11 +183,11 @@ local keys = {
    { key = 'Enter', mods = mod.SUPER,     action = act.TogglePaneZoomState },
    { key = 'w',     mods = mod.SUPER,     action = act.CloseCurrentPane({ confirm = false }) },
 
-   -- panes: navigation
-   { key = 'k',     mods = mod.SUPER_REV, action = act.ActivatePaneDirection('Up') },
-   { key = 'j',     mods = mod.SUPER_REV, action = act.ActivatePaneDirection('Down') },
-   { key = 'h',     mods = mod.SUPER_REV, action = act.ActivatePaneDirection('Left') },
-   { key = 'l',     mods = mod.SUPER_REV, action = act.ActivatePaneDirection('Right') },
+   -- panes: navigation (Vim style hjkl)
+   { key = 'h',     mods = mod.SUPER, action = act.ActivatePaneDirection('Left') },
+   { key = 'j',     mods = mod.SUPER, action = act.ActivatePaneDirection('Down') },
+   { key = 'k',     mods = mod.SUPER, action = act.ActivatePaneDirection('Up') },
+   { key = 'l',     mods = mod.SUPER, action = act.ActivatePaneDirection('Right') },
    {
       key = 'p',
       mods = mod.SUPER_REV,
@@ -184,8 +195,6 @@ local keys = {
    },
 
    -- panes: scroll pane
-   { key = 'u',        mods = mod.SUPER, action = act.ScrollByLine(-5) },
-   { key = 'd',        mods = mod.SUPER, action = act.ScrollByLine(5) },
    { key = 'PageUp',   mods = 'NONE',    action = act.ScrollByPage(-0.75) },
    { key = 'PageDown', mods = 'NONE',    action = act.ScrollByPage(0.75) },
 
@@ -202,7 +211,7 @@ local keys = {
    },
    -- resize panes
    {
-      key = 'p',
+      key = 'r',
       mods = 'LEADER',
       action = act.ActivateKeyTable({
          name = 'resize_pane',
