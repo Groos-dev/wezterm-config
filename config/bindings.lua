@@ -83,6 +83,8 @@ local function create_keybind_guide()
             { key = M .. ' k', desc = 'Navigate Up' },
             { key = M .. ' l', desc = 'Navigate Right' },
             { key = MR .. ' p', desc = 'Swap Pane' },
+            { key = M .. ' u', desc = 'Scroll Up (Half Page)' },
+            { key = M .. ' d', desc = 'Scroll Down (Half Page)' },
             { key = 'PageUp', desc = 'Scroll Up' },
             { key = 'PageDown', desc = 'Scroll Down' },
          },
@@ -377,8 +379,10 @@ local keys = {
    },
 
    -- panes: scroll pane
-   { key = 'PageUp',   mods = 'NONE',    action = act.ScrollByPage(-0.75) },
-   { key = 'PageDown', mods = 'NONE',    action = act.ScrollByPage(0.75) },
+   { key = 'PageUp',   mods = 'NONE',      action = act.ScrollByPage(-0.75) },
+   { key = 'PageDown', mods = 'NONE',      action = act.ScrollByPage(0.75) },
+   { key = 'u',        mods = mod.SUPER,   action = act.ScrollByPage(-0.5) },
+   { key = 'd',        mods = mod.SUPER,   action = act.ScrollByPage(0.5) },
 
    -- key-tables --
    -- resizes fonts

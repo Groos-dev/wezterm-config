@@ -88,6 +88,8 @@ local RENDER_VARIANTS = {
    { 'scircle_left', 'admin', 'title', 'unseen_output', 'padding', 'scircle_right' },
    { 'scircle_left', 'wsl', 'title', 'padding', 'scircle_right' },
    { 'scircle_left', 'wsl', 'title', 'unseen_output', 'padding', 'scircle_right' },
+   { 'scircle_left', 'custom_icon', 'title', 'padding', 'scircle_right' },
+   { 'scircle_left', 'custom_icon', 'title', 'unseen_output', 'padding', 'scircle_right' },
 }
 
 
@@ -118,18 +120,25 @@ local function clean_process_name(proc)
    return a:gsub('%.exe$', '')
 end
 
----@param process_name string
----@param base_title string
----@param max_width number
----@param inset number
-local function create_title(process_name, base_title, max_width, inset)
-   local title
-
-   if process_name:len() > 0 then
-      title = process_name .. ' ~ ' .. base_title
-   else
-      title = base_title
+local function truncate_middle(str, max_len)
+   if str:len() <= max_len then
+      return str
    end
+
+   local ellipsis = '...'
+   local chars = max_len - ellipsis:len()
+   if chars <= 0 then
+      return ellipsis
+   end
+
+   local left = math.ceil(chars / 2)
+   local right = math.floor(chars / 2)
+
+   return str:sub(1, left) .. ellipsis .. str:sub(-right)
+end
+
+local function create_title(process_name, base_title, max_width, inset)
+   local title = base_title:match('([^/\\]+)$') or base_title
 
    if base_title == 'Debug' then
       title = GLYPH_DEBUG .. ' DEBUG'
@@ -141,12 +150,11 @@ local function create_title(process_name, base_title, max_width, inset)
       inset = inset - 2
    end
 
-   if title:len() > max_width - inset then
-      local diff = title:len() - max_width + inset
-      title = title:sub(1, title:len() - diff)
+   local max_len = max_width - inset
+   if title:len() > max_len then
+      title = truncate_middle(title, max_len)
    else
-      local padding = max_width - title:len() - inset
-      title = title .. string.rep(' ', padding)
+      title = title .. string.rep(' ', max_len - title:len())
    end
 
    return title
@@ -186,6 +194,7 @@ end
 ---@field unseen_output boolean
 ---@field unseen_output_count number
 ---@field is_active boolean
+---@field custom_icon string|nil
 local Tab = {}
 Tab.__index = Tab
 
@@ -199,6 +208,7 @@ function Tab:new()
       is_admin = false,
       unseen_output = false,
       unseen_output_count = 0,
+      custom_icon = nil,
    }
    return setmetatable(tab, self)
 end
@@ -208,6 +218,7 @@ end
 ---@param max_width number
 function Tab:set_info(event_opts, tab, max_width)
    local process_name = clean_process_name(tab.active_pane.foreground_process_name)
+   local user_vars = tab.active_pane.user_vars or {}
 
    self.is_wsl = process_name:match('^wsl') ~= nil
    self.is_admin = (
@@ -216,11 +227,15 @@ function Tab:set_info(event_opts, tab, max_width)
    self.unseen_output = false
    self.unseen_output_count = 0
 
+   local custom_title = user_vars.tab_title
+   local custom_icon = user_vars.tab_icon
+   self.custom_icon = (custom_icon and custom_icon ~= '') and custom_icon or nil
+
    if not event_opts.hide_active_tab_unseen or not tab.is_active then
       self.unseen_output, self.unseen_output_count = check_unseen_output(tab.panes)
    end
 
-   local inset = (self.is_admin or self.is_wsl) and TITLE_INSET.ICON or TITLE_INSET.DEFAULT
+   local inset = (self.is_admin or self.is_wsl or self.custom_icon) and TITLE_INSET.ICON or TITLE_INSET.DEFAULT
    if self.unseen_output then
       inset = inset + 2
    end
@@ -229,6 +244,12 @@ function Tab:set_info(event_opts, tab, max_width)
       self.title = create_title('', self.locked_title, max_width, inset)
       return
    end
+
+   if custom_title and custom_title ~= '' then
+      self.title = create_title('', custom_title, max_width, inset)
+      return
+   end
+
    self.title = create_title(process_name, tab.active_pane.title, max_width, inset)
 end
 
@@ -238,6 +259,7 @@ function Tab:create_cells()
       :add_segment('scircle_left', GLYPH_SCIRCLE_LEFT)
       :add_segment('admin', ' ' .. GLYPH_ADMIN)
       :add_segment('wsl', ' ' .. GLYPH_LINUX)
+      :add_segment('custom_icon', ' ')
       :add_segment('title', ' ', nil, attr(attr.intensity('Bold')))
       :add_segment('unseen_output', ' ' .. GLYPH_CIRCLE)
       :add_segment('padding', ' ')
@@ -263,6 +285,10 @@ function Tab:update_cells(event_opts, is_active, hover)
 
    self.cells:update_segment_text('title', ' ' .. self.title)
 
+   if self.custom_icon then
+      self.cells:update_segment_text('custom_icon', ' ' .. self.custom_icon)
+   end
+
    if event_opts.unseen_icon == 'numbered_box' and self.unseen_output then
       self.cells:update_segment_text(
          'unseen_output',
@@ -280,6 +306,7 @@ function Tab:update_cells(event_opts, is_active, hover)
       :update_segment_colors('scircle_left', colors['scircle_' .. tab_state])
       :update_segment_colors('admin', colors['text_' .. tab_state])
       :update_segment_colors('wsl', colors['text_' .. tab_state])
+      :update_segment_colors('custom_icon', colors['text_' .. tab_state])
       :update_segment_colors('title', colors['text_' .. tab_state])
       :update_segment_colors('unseen_output', colors['unseen_output_' .. tab_state])
       :update_segment_colors('padding', colors['text_' .. tab_state])
@@ -291,6 +318,9 @@ function Tab:render()
    local variant_idx = self.is_admin and 3 or 1
    if self.is_wsl then
       variant_idx = 5
+   end
+   if self.custom_icon then
+      variant_idx = 7
    end
 
    if self.unseen_output then
@@ -326,6 +356,8 @@ M.setup = function(opts)
                   local tab = window:active_tab()
                   local id = tab:tab_id()
                   tab_list[id]:update_and_lock_title(line)
+                  -- Persist the locked title using user vars
+                  _pane:set_user_var('tab_locked_title', line)
                end
             end),
          }),
@@ -335,10 +367,12 @@ M.setup = function(opts)
 
    -- CUSTOM EVENT
    -- Event listener to unlock manually set tab name
-   wezterm.on('tabs.reset-tab-title', function(window, _pane)
+   wezterm.on('tabs.reset-tab-title', function(window, pane)
       local tab = window:active_tab()
       local id = tab:tab_id()
       tab_list[id].title_locked = false
+      -- Clear the persisted locked title
+      pane:set_user_var('tab_locked_title', nil)
    end)
 
    -- CUSTOM EVENT
@@ -355,6 +389,13 @@ M.setup = function(opts)
    wezterm.on('format-tab-title', function(tab, _tabs, _panes, _config, hover, max_width)
       if not tab_list[tab.tab_id] then
          tab_list[tab.tab_id] = Tab:new()
+
+         -- Restore locked title from user vars if it exists
+         local locked_title = tab.active_pane.user_vars.tab_locked_title
+         if locked_title and locked_title ~= '' then
+            tab_list[tab.tab_id]:update_and_lock_title(locked_title)
+         end
+
          tab_list[tab.tab_id]:set_info(valid_opts, tab, max_width)
          tab_list[tab.tab_id]:create_cells()
          return tab_list[tab.tab_id]:render()

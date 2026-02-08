@@ -36,6 +36,7 @@ return {
    switch_to_last_active_tab_when_closing_tab = true,
 
    -- window
+   macos_window_background_blur = 15,
    window_padding = {
       left = 0,
       right = 0,
