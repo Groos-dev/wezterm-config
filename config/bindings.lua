@@ -71,23 +71,25 @@ local function create_keybind_guide()
          },
       },
       {
-         title = 'PANES',
-         icon = '🪟',
-         items = {
-            { key = M .. ' -', desc = 'Split Vertical' },
-            { key = M .. ' \\', desc = 'Split Horizontal' },
-            { key = M .. ' w', desc = 'Close Pane' },
-            { key = M .. ' Enter', desc = 'Toggle Zoom' },
-            { key = M .. ' h', desc = 'Navigate Left' },
-            { key = M .. ' j', desc = 'Navigate Down' },
-            { key = M .. ' k', desc = 'Navigate Up' },
-            { key = M .. ' l', desc = 'Navigate Right' },
-            { key = MR .. ' p', desc = 'Swap Pane' },
-            { key = M .. ' u', desc = 'Scroll Up (Half Page)' },
-            { key = M .. ' d', desc = 'Scroll Down (Half Page)' },
-            { key = 'PageUp', desc = 'Scroll Up' },
-            { key = 'PageDown', desc = 'Scroll Down' },
-         },
+          title = 'PANES',
+          icon = '🪟',
+          items = {
+             { key = M .. ' -', desc = 'Split Vertical' },
+             { key = M .. ' \\', desc = 'Split Horizontal' },
+             { key = M .. ' w', desc = 'Close Pane' },
+             { key = M .. ' Enter', desc = 'Toggle Zoom' },
+             { key = M .. ' h', desc = 'Navigate Left' },
+             { key = M .. ' j', desc = 'Navigate Down' },
+             { key = M .. ' k', desc = 'Navigate Up' },
+             { key = M .. ' l', desc = 'Navigate Right' },
+             { key = MR .. ' p', desc = 'Swap Pane' },
+             { key = M .. ' u', desc = 'Scroll Up (Half Page)' },
+             { key = M .. ' d', desc = 'Scroll Down (Half Page)' },
+             { key = 'PageUp', desc = 'Scroll Up' },
+             { key = 'PageDown', desc = 'Scroll Down' },
+             { key = MR .. ' h/j/k/l', desc = 'Resize (2 cells)' },
+             { key = MR .. ' H/J/K/L', desc = 'Resize (5 cells)' },
+          },
       },
       {
          title = 'WINDOW',
@@ -378,11 +380,21 @@ local keys = {
       action = act.PaneSelect({ alphabet = '1234567890', mode = 'SwapWithActiveKeepFocus' }),
    },
 
-   -- panes: scroll pane
-   { key = 'PageUp',   mods = 'NONE',      action = act.ScrollByPage(-0.75) },
-   { key = 'PageDown', mods = 'NONE',      action = act.ScrollByPage(0.75) },
-   { key = 'u',        mods = mod.SUPER,   action = act.ScrollByPage(-0.5) },
-   { key = 'd',        mods = mod.SUPER,   action = act.ScrollByPage(0.5) },
+    -- panes: scroll pane
+    { key = 'PageUp',   mods = 'NONE',      action = act.ScrollByPage(-0.75) },
+    { key = 'PageDown', mods = 'NONE',      action = act.ScrollByPage(0.75) },
+    { key = 'u',        mods = mod.SUPER,   action = act.ScrollByPage(-0.5) },
+    { key = 'd',        mods = mod.SUPER,   action = act.ScrollByPage(0.5) },
+
+    -- panes: resize with SUPER|CTRL (direct resize without leader mode)
+    { key = 'h',        mods = mod.SUPER_REV, action = act.AdjustPaneSize({ 'Left', 2 }) },
+    { key = 'j',        mods = mod.SUPER_REV, action = act.AdjustPaneSize({ 'Down', 2 }) },
+    { key = 'k',        mods = mod.SUPER_REV, action = act.AdjustPaneSize({ 'Up', 2 }) },
+    { key = 'l',        mods = mod.SUPER_REV, action = act.AdjustPaneSize({ 'Right', 2 }) },
+    { key = 'H',        mods = mod.SUPER_REV, action = act.AdjustPaneSize({ 'Left', 5 }) },
+    { key = 'J',        mods = mod.SUPER_REV, action = act.AdjustPaneSize({ 'Down', 5 }) },
+    { key = 'K',        mods = mod.SUPER_REV, action = act.AdjustPaneSize({ 'Up', 5 }) },
+    { key = 'L',        mods = mod.SUPER_REV, action = act.AdjustPaneSize({ 'Right', 5 }) },
 
    -- key-tables --
    -- resizes fonts
