@@ -151,10 +151,8 @@ local function create_title(process_name, base_title, max_width, inset)
    end
 
    local max_len = max_width - inset
-   if title:len() > max_len then
+   if title:len() > 20 and title:len() > max_len then
       title = truncate_middle(title, max_len)
-   else
-      title = title .. string.rep(' ', max_len - title:len())
    end
 
    return title
@@ -250,7 +248,17 @@ function Tab:set_info(event_opts, tab, max_width)
       return
    end
 
-   self.title = create_title(process_name, tab.active_pane.title, max_width, inset)
+   local title = tab.active_pane.title
+   if tab.active_pane.current_working_dir then
+      local cwd = tab.active_pane.current_working_dir.file_path
+      if cwd == os.getenv('HOME') then
+         title = '~'
+      else
+         title = cwd
+      end
+   end
+
+   self.title = create_title(process_name, title, max_width, inset)
 end
 
 function Tab:create_cells()
