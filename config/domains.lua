@@ -1,6 +1,5 @@
 return {
    -- ref: https://wezfurlong.org/wezterm/config/lua/SshDomain.html
-   -- ssh_domains = {},
    ssh_domains = {
       -- yazi's image preview on Windows will only work if launched via ssh from WSL
       {
@@ -14,11 +13,25 @@ return {
             ServerAliveInterval = '60',
             ServerAliveCountMax = '3',
          },
-      }
+      },
+      {
+         name = 'wsl.ssh.mux',
+         remote_address = 'localhost',
+         multiplexing = 'WezTerm',
+         default_prog = { 'zsh', '-l' },
+         assume_shell = 'Posix',
+         ssh_option = {
+            ConnectTimeout = '15',
+            ServerAliveInterval = '60',
+            ServerAliveCountMax = '3',
+         },
+      },
    },
 
    -- ref: https://wezfurlong.org/wezterm/multiplexing.html#unix-domains
-   unix_domains = {},
+   unix_domains = {
+      { name = 'unix' },
+   },
 
    -- ref: https://wezfurlong.org/wezterm/config/lua/WslDomain.html
    wsl_domains = {

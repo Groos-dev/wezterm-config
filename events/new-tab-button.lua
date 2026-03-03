@@ -2,6 +2,7 @@ local wezterm = require('wezterm')
 local launch_menu = require('config.launch').launch_menu
 local domains = require('config.domains')
 local Cells = require('utils.cells')
+local mux_policy_runtime = require('utils.mux-policy-runtime')
 
 local nf = wezterm.nerdfonts
 local act = wezterm.action
@@ -25,6 +26,15 @@ local cells = Cells:new()
    :add_segment('icon_ssh', ' ' .. nf.md_ssh .. ' ', colors.icon_ssh)
    :add_segment('icon_unix', ' ' .. nf.dev_gnu .. ' ', colors.icon_unix)
    :add_segment('label_text', '', colors.label_text, attr(attr.intensity('Bold')))
+
+---@param domain_name string
+---@return string
+local function display_domain_name(domain_name)
+   if mux_policy_runtime.is_mux_ssh_domain(domain_name) then
+      return domain_name .. ' (enhanced)'
+   end
+   return domain_name
+end
 
 local function build_choices()
    local choices = {}
@@ -62,7 +72,7 @@ local function build_choices()
 
    -- Add SSH domains
    for _, v in ipairs(domains.ssh_domains) do
-      cells:update_segment_text('label_text', v.name)
+      cells:update_segment_text('label_text', display_domain_name(v.name))
       table.insert(choices, {
          id = tostring(idx),
          label = wezterm.format(cells:render({ 'icon_ssh', 'label_text' })),
@@ -103,18 +113,22 @@ M.setup = function()
                title = 'InputSelector: Launch Menu',
                choices = choices,
                fuzzy = true,
-               fuzzy_description = nf.md_rocket .. ' Select a lauch item: ',
+               fuzzy_description = nf.md_rocket .. ' Select a launch item: ',
                action = wezterm.action_callback(function(_window, _pane, id, label)
-                  if not id and not label then
+                  if not id then
                      return
-                  else
-                     wezterm.log_info('you selected ', id, label)
-                     wezterm.log_info(choices_data[tonumber(id)])
-                     window:perform_action(
-                        act.SpawnCommandInNewTab(choices_data[tonumber(id)]),
-                        pane
-                     )
                   end
+
+                  local choice_idx = tonumber(id)
+                  local choice = choice_idx and choices_data[choice_idx] or nil
+                  if not choice then
+                     wezterm.log_warn('new-tab-button: invalid selection id: ' .. tostring(id))
+                     return
+                  end
+
+                  wezterm.log_info('you selected ', id, label)
+                  wezterm.log_info(choice)
+                  window:perform_action(act.SpawnCommandInNewTab(choice), pane)
                end),
             }),
             pane

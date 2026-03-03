@@ -1,4 +1,6 @@
-return {
+local mux_startup_plan = require('utils.mux-startup-plan')
+
+local opts = {
    -- behaviours
    automatically_reload_config = true,
    exit_behavior = 'CloseOnCleanExit', -- if the shell program exited with a successful status
@@ -44,3 +46,11 @@ return {
       },
    },
 }
+
+local plan = mux_startup_plan.get()
+if plan.enabled and plan.should_connect_startup then
+   opts.default_domain = plan.restore_domain_name
+   opts.default_gui_startup_args = { 'connect', plan.restore_domain_name }
+end
+
+return opts
