@@ -4,6 +4,7 @@ local M = {}
 
 M.STATE_FILE_NAME = '.mux_policy_state.json'
 M.TELEMETRY_FILE_NAME = '.mux_policy_telemetry.log'
+M.RUNTIME_DIR_ENV = 'WEZTERM_MUX_POLICY_DIR'
 M.STATE_SCHEMA_VERSION = 2
 
 local LEGACY_POLICY_HINTS = {
@@ -11,6 +12,32 @@ local LEGACY_POLICY_HINTS = {
    newest = true,
    clean_start = true,
 }
+
+---@param dir string
+---@param file_name string
+---@return string
+local function join_path(dir, file_name)
+   local suffix = string.sub(dir, -1)
+   if suffix == '/' or suffix == '\\' then
+      return dir .. file_name
+   end
+   return dir .. '/' .. file_name
+end
+
+---@return string
+local function runtime_dir()
+   local override = os.getenv(M.RUNTIME_DIR_ENV)
+   if type(override) == 'string' and override ~= '' then
+      return override
+   end
+
+   local home_dir = wezterm.home_dir or os.getenv('HOME') or os.getenv('USERPROFILE')
+   if type(home_dir) == 'string' and home_dir ~= '' then
+      return home_dir
+   end
+
+   return wezterm.config_dir
+end
 
 ---@param maybe_domain_name any
 ---@return boolean
@@ -56,12 +83,12 @@ end
 
 ---@return string
 function M.state_file_path()
-   return wezterm.config_dir .. '/' .. M.STATE_FILE_NAME
+   return join_path(runtime_dir(), M.STATE_FILE_NAME)
 end
 
 ---@return string
 function M.telemetry_file_path()
-   return wezterm.config_dir .. '/' .. M.TELEMETRY_FILE_NAME
+   return join_path(runtime_dir(), M.TELEMETRY_FILE_NAME)
 end
 
 ---@return table
@@ -145,6 +172,7 @@ end
 function M.read_state()
    local default_state = M.default_state()
    local raw_state, read_err = read_file(M.state_file_path())
+
    if not raw_state then
       return default_state, read_err
    end
