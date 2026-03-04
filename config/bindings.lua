@@ -57,7 +57,7 @@ local function create_keybind_guide()
          title = 'TABS',
          icon = '📑',
          items = {
-            { key = M .. ' t', desc = 'New Tab' },
+            { key = M .. ' t', desc = 'New Tab (Current Domain)' },
             { key = MR .. ' t', desc = 'New Tab (WSL)' },
             { key = MR .. ' w', desc = 'Close Tab' },
             { key = M .. ' [', desc = 'Previous Tab' },
@@ -75,7 +75,7 @@ local function create_keybind_guide()
           icon = '🪟',
           items = {
              { key = M .. ' -', desc = 'Split Vertical' },
-             { key = M .. ' \\', desc = 'Split Horizontal' },
+             { key = M .. ' \\ / |', desc = 'Split Horizontal' },
              { key = M .. ' w', desc = 'Close Pane' },
              { key = M .. ' Enter', desc = 'Toggle Zoom' },
              { key = M .. ' h', desc = 'Navigate Left' },
@@ -246,7 +246,7 @@ local keys = {
 
    -- tabs --
    -- tabs: spawn+close
-   { key = 't',          mods = mod.SUPER,     action = act.SpawnTab('DefaultDomain') },
+   { key = 't',          mods = mod.SUPER,     action = act.SpawnTab('CurrentPaneDomain') },
    { key = 't',          mods = mod.SUPER_REV, action = act.SpawnTab({ DomainName = 'WSL:Ubuntu' }) },
    { key = 'w',          mods = mod.SUPER_REV, action = act.CloseCurrentTab({ confirm = false }) },
 
@@ -361,6 +361,11 @@ local keys = {
    },
    {
       key = '\\',
+      mods = mod.SUPER,
+      action = act.SplitHorizontal({ domain = 'CurrentPaneDomain' }),
+   },
+   {
+      key = '|',
       mods = mod.SUPER,
       action = act.SplitHorizontal({ domain = 'CurrentPaneDomain' }),
    },

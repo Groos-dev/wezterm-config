@@ -102,12 +102,12 @@ end
 local choices, choices_data = build_choices()
 
 M.setup = function()
-   wezterm.on('new-tab-button-click', function(window, pane, button, default_action)
-      if default_action and button == 'Left' then
-         window:perform_action(default_action, pane)
+   wezterm.on('new-tab-button-click', function(window, pane, button, _default_action)
+      if button == 'Left' then
+         window:perform_action(act.SpawnTab('CurrentPaneDomain'), pane)
       end
 
-      if default_action and button == 'Right' then
+      if button == 'Right' then
          window:perform_action(
             act.InputSelector({
                title = 'InputSelector: Launch Menu',
