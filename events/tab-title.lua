@@ -137,7 +137,7 @@ local function truncate_middle(str, max_len)
    return str:sub(1, left) .. ellipsis .. str:sub(-right)
 end
 
-local function create_title(process_name, base_title, max_width, inset)
+local function create_title(base_title, max_width, inset)
    local title = base_title:match('([^/\\]+)$') or base_title
 
    if base_title == 'Debug' then
@@ -233,18 +233,19 @@ function Tab:set_info(event_opts, tab, max_width)
       self.unseen_output, self.unseen_output_count = check_unseen_output(tab.panes)
    end
 
-   local inset = (self.is_admin or self.is_wsl or self.custom_icon) and TITLE_INSET.ICON or TITLE_INSET.DEFAULT
+   local inset = (self.is_admin or self.is_wsl or self.custom_icon) and TITLE_INSET.ICON
+      or TITLE_INSET.DEFAULT
    if self.unseen_output then
       inset = inset + 2
    end
 
    if self.title_locked then
-      self.title = create_title('', self.locked_title, max_width, inset)
+      self.title = create_title(self.locked_title, max_width, inset)
       return
    end
 
    if custom_title and custom_title ~= '' then
-      self.title = create_title('', custom_title, max_width, inset)
+      self.title = create_title(custom_title, max_width, inset)
       return
    end
 
@@ -258,7 +259,7 @@ function Tab:set_info(event_opts, tab, max_width)
       end
    end
 
-   self.title = create_title(process_name, title, max_width, inset)
+   self.title = create_title(title, max_width, inset)
 end
 
 function Tab:create_cells()
@@ -359,13 +360,13 @@ M.setup = function(opts)
                { Attribute = { Intensity = 'Bold' } },
                { Text = 'Enter new name for tab' },
             }),
-            action = wezterm.action_callback(function(_window, _pane, line)
+            action = wezterm.action_callback(function(_window, pane_target, line)
                if line ~= nil then
                   local tab = window:active_tab()
                   local id = tab:tab_id()
                   tab_list[id]:update_and_lock_title(line)
                   -- Persist the locked title using user vars
-                  _pane:set_user_var('tab_locked_title', line)
+                  pane_target:set_user_var('tab_locked_title', line)
                end
             end),
          }),
