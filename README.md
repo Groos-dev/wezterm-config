@@ -18,6 +18,13 @@
 
 ### Features
 
+- **Background Session Persistence (Mux)**
+
+  - Keep local terminal sessions running after closing all GUI windows.
+  - Auto-restore the previous local workspace on next startup.
+  - Automatic fallback to a fresh session when restore fails.
+  - SSH domains are split into standard (`*.ssh`) and enhanced (`*.ssh.mux`) modes.
+
 - [**Background Image Selector**](https://github.com/KevinSilvester/wezterm-config/blob/master/utils/backdrops.lua)
 
   - Cycle images
@@ -208,6 +215,20 @@
 
   - [./config/domains.lua](./config/domains.lua) for custom SSH/WSL domains
   - [./config/launch.lua](./config/launch.lua) for preferred shells and its paths
+  - [./config/mux_policy.lua](./config/mux_policy.lua) for restore policy, timeout, telemetry, and fallback notifications
+
+### Mux Session Notes
+
+- `config/mux_policy.lua` controls feature flags and restore behavior.
+- `enabled = true` enables mux lifecycle; startup `connect` is gated by restore policy checks (`auto_restore`, `clean_start`, `remote_mode`, age gate).
+- `enabled = false` turns off startup auto-restore and falls back to standard startup mode.
+- `restore_policy = "clean_start"` is useful for troubleshooting.
+- `restore_domain` is the fallback domain used by auto-restore when state hints are unavailable.
+- `restore_policy = "last_active"` prefers `last_session_hint` (latest active pane domain persisted during session), then falls back to `last_domain_name`.
+- `restore_policy = "newest"` prefers `last_domain_name` (domain from latest successful restore), then falls back to `last_session_hint`.
+- `fallback_domain` controls where a fresh session is created when restore fails or times out (default is `unix` for availability-first fallback).
+- Normal SSH domains (`multiplexing = "None"`) do not guarantee reconnecting to an old remote session.
+- Enhanced SSH domains (`*.mux`, `multiplexing = "WezTerm"`) are for remote mux-based resume workflows.
 
 ---
 
