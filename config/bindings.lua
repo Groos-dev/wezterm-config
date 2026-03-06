@@ -2,6 +2,7 @@ local wezterm = require('wezterm')
 local platform = require('utils.platform')
 local backdrops = require('utils.backdrops')
 local act = wezterm.action
+local pane_utils = require('utils.pane')
 
 local mod = {}
 
@@ -357,17 +358,17 @@ local keys = {
    {
       key = '-',
       mods = mod.SUPER,
-      action = act.SplitVertical({ domain = 'CurrentPaneDomain' }),
+      action = pane_utils.smart_split_action('Vertical'),
    },
    {
       key = '\\',
       mods = mod.SUPER,
-      action = act.SplitHorizontal({ domain = 'CurrentPaneDomain' }),
+      action = pane_utils.smart_split_action('Horizontal'),
    },
    {
       key = '|',
       mods = mod.SUPER,
-      action = act.SplitHorizontal({ domain = 'CurrentPaneDomain' }),
+      action = pane_utils.smart_split_action('Horizontal'),
    },
 
    -- panes: zoom+close pane
