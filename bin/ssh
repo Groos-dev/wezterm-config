@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+set -o pipefail
+
+is_wezterm_terminal() {
+  [[ -n "${WEZTERM_PANE:-}" || "${TERM_PROGRAM:-}" == "WezTerm" ]]
+}
+
+wezterm_set_user_var() {
+  local name="$1"
+  local value="$2"
+  local encoded
+  encoded="$(printf '%s' "$value" | base64 | tr -d '\r\n')"
+  printf '\033]1337;SetUserVar=%s=%s\007' "$name" "$encoded"
+}
+
+build_ssh_command() {
+  local cmd='ssh'
+  local arg
+  local quoted
+
+  for arg in "$@"; do
+    printf -v quoted '%q' "$arg"
+    cmd+=" ${quoted}"
+  done
+
+  printf '%s' "$cmd"
+}
+
+resolve_real_ssh() {
+  local self
+  local candidate
+
+  self="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+  while IFS= read -r candidate; do
+    [[ -z "${candidate}" ]] && continue
+
+    if [[ "$(cd "$(dirname "${candidate}")" && pwd)/$(basename "${candidate}")" != "${self}" ]]; then
+      printf '%s' "${candidate}"
+      return 0
+    fi
+  done < <(type -aP ssh 2>/dev/null)
+
+  if [[ -x /usr/bin/ssh ]]; then
+    printf '%s' '/usr/bin/ssh'
+    return 0
+  fi
+
+  return 1
+}
+
+real_ssh="$(resolve_real_ssh)"
+if [[ -z "${real_ssh}" ]]; then
+  printf 'wezterm ssh wrapper: cannot locate real ssh binary\n' >&2
+  exit 127
+fi
+
+if is_wezterm_terminal; then
+  wezterm_set_user_var WEZTERM_SSH_ACTIVE '1'
+  wezterm_set_user_var WEZTERM_SSH_COMMAND "$(build_ssh_command "$@")"
+fi
+
+"${real_ssh}" "$@"
+ssh_exit_code=$?
+
+if is_wezterm_terminal; then
+  wezterm_set_user_var WEZTERM_SSH_ACTIVE '0'
+  wezterm_set_user_var WEZTERM_SSH_COMMAND ''
+fi
+
+exit "${ssh_exit_code}"

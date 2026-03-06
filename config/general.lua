@@ -1,4 +1,23 @@
+local wezterm = require('wezterm')
 local mux_startup_plan = require('utils.mux-startup-plan')
+local platform = require('utils.platform')
+
+local function prepend_posix_path(path_entry, existing_path)
+   if type(path_entry) ~= 'string' or path_entry == '' then
+      return existing_path
+   end
+
+   if type(existing_path) ~= 'string' or existing_path == '' then
+      return path_entry
+   end
+
+   local with_separators = ':' .. existing_path .. ':'
+   if with_separators:find(':' .. path_entry .. ':', 1, true) then
+      return existing_path
+   end
+
+   return path_entry .. ':' .. existing_path
+end
 
 local opts = {
    -- behaviours
@@ -46,6 +65,13 @@ local opts = {
       },
    },
 }
+
+if platform.is_mac or platform.is_linux then
+   local helper_bin = wezterm.config_dir .. '/bin'
+   opts.set_environment_variables = {
+      PATH = prepend_posix_path(helper_bin, os.getenv('PATH') or ''),
+   }
+end
 
 local plan = mux_startup_plan.get()
 if plan.enabled and plan.should_connect_startup then
